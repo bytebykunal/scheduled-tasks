@@ -3,12 +3,13 @@ import smtplib
 import pandas
 import datetime as dt
 import random
+import os
 
 now = dt.datetime.now()
 today = (now.month,now.day)
 
-my_email = "kunal.ds.dev@gmail.com"
-password = "ycjm hfeq kzxz lbzu"
+my_email = os.environ.get("MY_EMAIL")
+password = os.environ.get("MY_PASSWORD")
 # 1. Update the birthdays.csv
 
 data = pandas.read_csv("birthdays.csv")
