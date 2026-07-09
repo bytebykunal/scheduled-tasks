@@ -1,36 +1,42 @@
-##################### Extra Hard Starting Project ######################
-import smtplib
-import pandas
-import datetime as dt
-import random
+import requests
+from twilio.rest import Client
 import os
 
-now = dt.datetime.now()
-today = (now.month,now.day)
+MY_LAT = 28.251354
+MY_LONG = 77.853882
 
-my_email = os.environ.get("MY_EMAIL")
-password = os.environ.get("MY_PASSWORD")
-# 1. Update the birthdays.csv
-
-data = pandas.read_csv("birthdays.csv")
-
-
-with smtplib.SMTP("smtp.gmail.com", port=587) as connection:
-    connection.starttls()
-    connection.login(user=my_email, password=password)
-# 2. Check if today matches a birthday in the birthdays.csv
-    for index, row in data.iterrows():
-        if today == (row['month'], row['day']):
-    # 3. If step 2 is true, pick a random letter from letter templates and replace the [NAME] with the person's actual name from birthdays.csv
-            with open(f"letter_templates/letter_{random.randint(1, 3)}.txt") as file:
-                message = file.read()
-                birthday_wish = message.replace("[NAME]", row['name'])
-    # 4. Send the letter generated in step 3 to that person's email address.
-                connection.sendmail(
-                    from_addr=my_email,
-                    to_addrs= row['email'],
-                    msg= f"Subject: Birthday Wish\n\n{birthday_wish}"
-                )
+OWM_Endpoint = "https://api.openweathermap.org/data/2.5/forecast"
+api_key = os.environ.get("OWM_API_KEY")
+account_sid = os.environ.get("ACCOUNT_SID")
+auth_token = os.environ.get("AUTH_TOKEN")
 
 
+
+parameters = {
+    "lat": MY_LAT,
+    "lon": MY_LONG,
+    "appid": api_key,
+    "cnt": 4
+}
+
+response = requests.get(url=OWM_Endpoint, params=parameters)
+response.raise_for_status()
+
+weather_data = response.json()
+
+
+will_rain = False
+for hour_data in weather_data["list"]:
+    condition_code = hour_data["weather"][0]["id"]
+    if condition_code < 700:
+        will_rain = True
+        
+if will_rain:
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+        body="It's going to rain today. Remember to bring an ☔",
+        from_="+16812756849",
+        to="+919259512414",
+    )
+print(message.status)
 
