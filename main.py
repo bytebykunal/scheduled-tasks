@@ -38,5 +38,7 @@ if will_rain:
         from_="+16812756849",
         to="+919259512414",
     )
-print(message.status)
+    print(message.status)
+else:
+    print("No rain expected. No SMS sent.")
 
